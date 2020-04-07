@@ -7,22 +7,23 @@ import './css/start.css'
 
 export class Start extends React.Component {
   constructor(props){
-    super(props);
+    super(props)
 
-    this.state = {currentForm: 0}
+    this.state = {currentForm: 0};
+    this.changeForm = this.changeForm.bind(this);
+
     this.forms = [
       <NameForm changeForm={this.changeForm}/>,
       <JoinCreateForm changeForm={this.changeForm}/>,
       <WaitingForm changeForm={this.changeForm}/>
     ]
 
-    this.changeForm = this.changeForm.bind(this)
   }
 
   changeForm(){
-    this.setState({
-      currentForm: this.state.currentForm + 1
-    });
+     this.setState({
+       currentForm: this.state.currentForm + 1
+     });
   }
 
   render(){
