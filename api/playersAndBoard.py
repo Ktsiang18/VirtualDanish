@@ -1,4 +1,7 @@
 #!/usr/bin/python
+from app import db
+from models import Games, Users, Cards
+
 from pieces import *
 import random
 import time
@@ -44,7 +47,7 @@ class Player(object):
             if card.name == cardInput:
                 return card
         print('You do not have a', cardInput, 'please choose a card in your hand')
-s    def putDownCard(self, card, pile, usingDownCards=False):
+    def putDownCard(self, card, pile, usingDownCards=False):
         pile.pileCards.append(card)
         if usingDownCards:
             self.downCards.remove(card)
@@ -129,14 +132,37 @@ s    def putDownCard(self, card, pile, usingDownCards=False):
 class Board(object):
     """Main board object with center pile, remaining deck and player piles."""
 
-    def __init__(self, numPlayers):
+    def __init__(self, players, game):
         self.deck = Deck()
-        self.pile = Pile()
-        self.players = [Player(i) for i in range(1, numPlayers+1)]
-        self.currentPlayer = 0
-        self.dealInitalCards()
+        for card in self.deck.cards:
+            c = Cards(suit=card.suit, value=card.value, name=card.name, game_id=game.id, location='deck')
+            db.session.add(c)
+        db.session.commit()
 
-    def dealInitalCards(self):
+        self.pile = Pile()
+        self.players = [Player(i) for i in range(1, len(players)+1)]
+        self.currentPlayer = 0
+
+        game.currentPlayerIndex = 0
+        db.session.commit()
+
+        self.dealInitalCards(players, game)
+        for p in players:
+            p.usingDownCards = False
+            print(p.username, [c.name for c in p.cards])
+        print('initialized!')
+
+    def dealInitalCards(self, players, game):
+        deck = Cards.query.filter_by(game_id=game.id).all()
+        for p in players:
+            for i in range(4):
+                for loc in ['uphand', 'downhand', 'hand']:
+                    topC = deck[-1]
+                    topC.owner = p.id
+                    topC.location = loc
+                    deck.pop()
+        db.session.commit()
+
         for player in self.players:
             for i in range(4):
                 player.hand.append(self.deck.dealCard())

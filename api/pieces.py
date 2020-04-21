@@ -1,5 +1,8 @@
 #!/usr/bin/python
+from models import Games, Users, Cards
+from app import db
 import random
+
 
 class Card(object):
     """Cards designated by suit (S/H/C/D) and
@@ -27,7 +30,7 @@ class Deck(object):
 
     def fillDeck(self):
         cards = []
-        suits = ['S', 'H'] #, 'D', 'C']
+        suits = ['S', 'H', 'D', 'C']
         for s in suits:
             for d in range(2, 15):
                 cards.append(Card(s, d))

@@ -1,12 +1,23 @@
 from flask import Flask
-from flask import render_template
+from config import Config
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+import pusher
 
 app = Flask(__name__)
+app.config.from_object(Config)
 
-@app.route('/')
-def hello():
-    return "<h1 style='color: blue;'>Welcome to  danish!</h1>"
+db=SQLAlchemy(app)
+migrate=Migrate(app, db)
 
-@app.route("/start")
-def start():
-    return render_template("start.html")
+pusher_client = pusher.Pusher(
+  app_id='983636',
+  key='ff61f4ea6365adab4736',
+  secret='27490296aa9ef7371930',
+  cluster='us2',
+  ssl=True
+)
+
+pusher_client.trigger('my-channel', 'my-event', {'message': 'hello world'})
+
+import models, routes

@@ -1,38 +1,63 @@
-import React from 'react'
+import React, {useState} from 'react'
+import {withRouter, useParams} from 'react-router-dom'
 
-export class JoinCreateForm extends React.Component {
-  constructor(props){
-    super(props);
-    this.state = {code: ''};
+function JoinCreateForm(props){
+  let {id} = useParams()
+  const [code, setCode] = useState('')
 
-    this.handleChange = this.handleChange.bind(this)
-    this.handleSubmit = this.handleSubmit.bind(this)
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    fetch('/joinGame', {
+        method:'POST',
+        body:JSON.stringify({
+          code: code,
+          user_id: id,
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+          if(data.game_id){
+            alert('Joining game ' + data.game_code +'!')
+            props.history.push('/start/'+ id + '/waiting')
+          } else {
+            alert('Invalid code, please try again')
+          }
+    })
   }
 
-  handleChange(event) {
-    this.setState({name: event.target.value})
+  const newGame = (event) => {
+    fetch('/createGame', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: id
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      props.history.push('/start/'+ id + '/waiting')
+    })
   }
 
-  handleSubmit(event) {
-    alert('Joining game ' + this.state.code +'!')
-    this.props.changeForm()
+  const handleChange = (event) => {
+    setCode(event.target.value)
   }
 
-  render(){
-    return (
-      <div>
-        <form onSubmit={this.handleSubmit}>
-          <label>
-            Enter your code to join an existing game:
-            <input type="text" value={this.state.code} onChange={this.handleChange} />
-            <input type="submit" value="Join Game"/>
-          </label>
-        </form>
-        <label>Or start a new game
-        <button onClick={this.props.changeForm}>Create New Game</button></label>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Enter your code to join an existing game:
+          <input type="text" value={code} onChange={handleChange} />
+          <input type="submit" value="Join Game"/>
+        </label>
+      </form>
+      <label>Or start a new game
+          <button onClick={newGame}>Create New Game</button>
+      </label>
+    </div>
+  );
 }
 
-export default JoinCreateForm;
+
+export default withRouter(JoinCreateForm);

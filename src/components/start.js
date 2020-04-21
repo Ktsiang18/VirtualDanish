@@ -3,34 +3,27 @@ import NameForm from './forms/name-form'
 import JoinCreateForm from './forms/join-create-game-form'
 import WaitingForm from './forms/waiting-form'
 import './css/start.css'
+import {Route, Link, BrowserRouter as Router} from 'react-router-dom'
 
 
 export class Start extends React.Component {
-  constructor(props){
-    super(props)
-
-    this.state = {currentForm: 0};
-    this.changeForm = this.changeForm.bind(this);
-
-    this.forms = [
-      <NameForm changeForm={this.changeForm}/>,
-      <JoinCreateForm changeForm={this.changeForm}/>,
-      <WaitingForm changeForm={this.changeForm}/>
-    ]
-
-  }
-
-  changeForm(){
-     this.setState({
-       currentForm: this.state.currentForm + 1
-     });
-  }
-
   render(){
     return (
       <div>
         <h1 className="title">Welcome to Danish!</h1>
-        {this.forms[this.state.currentForm]}
+        <Router>
+          <div>
+            <Route path = '/start/name'>
+              <NameForm />
+            </Route>
+            <Route path = '/start/:id/joinCreate'>
+              <JoinCreateForm/>
+            </Route>
+            <Route path = '/start/:id/waiting'>
+              <WaitingForm/>
+            </Route>
+          </div>
+        </Router>
       </div>
     );
   }
