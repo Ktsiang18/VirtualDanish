@@ -90,15 +90,18 @@ def initGame():
 #----CARDS----
 @app.route("/getUsersCards/<user_id>/", methods=['GET'])
 def getUsersCards(user_id):
-    [cards, message] = getCards(user_id)
-    return cards
+    [result, message] = getCards(user_id)
+
+    if result.gameWon:
+        pusher_client.trigger(Constants.PUSHER_CHANNEL, Constants.WIN_EVENT(currentPlayer.game_id), {'winner_id': user_id})
+
+    return result
 
 @app.route("/setUsersCards", methods=['POST'])
 def setUsersCards():
     data = json.loads(request.data)
     for type in ['hand', 'uphand', 'downhand']:
         if type in data['cards']:
-            print('setting cards of type', type)
             setUsersCardsByType(type, data['cards'][type], data['user_id'])
     return {
         'message' : 'successfully updated cards'
@@ -165,12 +168,13 @@ def refillHand():
 def updateCurrentPlayer():
     data = json.loads(request.data)
     [currentPlayer, message] = changeToNextPlayer(data['user_id'])
-
+    [topCard, _] =  getPileTopByUser(data['user_id'])
     result = {
+        'top_card': topCard.name if topCard else None,
         'current_player_id': currentPlayer.id,
         'current_player_username': currentPlayer.username,
-        'message': message
+        'message': message,
+        'last_player': data['user_id']
     }
-    print(currentPlayer.game_id)
     pusher_client.trigger(Constants.PUSHER_CHANNEL, Constants.CHANGE_TURN_EVENT(currentPlayer.game_id), result)
     return result

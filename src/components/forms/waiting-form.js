@@ -1,7 +1,5 @@
 import React, {useEffect, useState} from 'react'
 import {Link, useParams, withRouter} from 'react-router-dom'
-import Pusher from 'pusher-js'
-import Constants from '../../constants'
 
 function WaitingForm(props){
   let {id} = useParams()
@@ -32,16 +30,12 @@ function WaitingForm(props){
   }, [id])
 
   //Pusher channel to wait for player to join
-  const pusher = new Pusher(Constants.PUSHER_APP_ID, Constants.PUSHER_OPTIONS);
-  const channel = pusher.subscribe(Constants.PUSHER_CHANNEL);
-
-  channel.bind('joining-game-'+game_id, function(data) {
+  props.pusherChannel.bind('joining-game-'+game_id, function(data) {
     setUserItems(data.game_users.map((user) => <li key={user.id}>{user.username}</li>))
   });
 
   //Pusher channel to wait for admin to start the game
-  channel.bind('init-game-'+game_id, function(data) {
-    console.log('recieved pusher event!')
+  props.pusherChannel.bind('init-game-'+game_id, function(data) {
     props.history.push(path)
   });
 
@@ -52,15 +46,21 @@ function WaitingForm(props){
         game_id: game_id
       })
     })
+    .then(() => {
+      props.history.push(path)
+    })
   }
 
-  const start_button = <Link to={path}><button onClick={initializeGame}>Start game!</button></Link>
+  const start_button = <button onClick={initializeGame}>Start game!</button>
   return (
-      <div>Code for current game: {code}
-        <ul>Current players:
-          {userItems}
-        </ul>
-          {is_admin ? start_button : 'Waiting for game to start'}
+      <div>
+        <h1 className="title">Welcome to Danish!</h1>
+        <div>Code for current game: {code}
+          <ul>Current players:
+            {userItems}
+          </ul>
+            {is_admin ? start_button : 'Waiting for game to start'}
+        </div>
       </div>
   );
 }

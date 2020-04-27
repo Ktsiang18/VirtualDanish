@@ -1,6 +1,9 @@
 .flex-container {
   display: flex;
   background-color: blue;
+  flex-wrap:wrap;
+  align-items: center;
+  justify-content: center;
 }
 
 .flex-container > div {

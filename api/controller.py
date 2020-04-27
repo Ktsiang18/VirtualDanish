@@ -1,5 +1,5 @@
 from models import Games, Users, Cards
-from playersAndBoard import Board
+from pieces import Deck
 from app import db
 import random
 
@@ -58,11 +58,35 @@ def createNewGame(user_id):
 def initializeGame(game_id):
     g = Games.query.get(game_id)
     users = list(u for u in g.users)
-    board = Board(users, g)
+
+    initializeDeck(game_id)
+    g.currentPlayerIndex = 0
+    db.session.commit()
+
+    dealInitalCards(users, game_id)
+    for u in users:
+        u.usingDownCards = False
+    db.session.commit()
+
+def initializeDeck(game_id):
+    deck = Deck()
+    for card in deck.cards:
+        c = Cards(suit=card.suit, value=card.value, name=card.name, game_id=game_id, location='deck')
+        db.session.add(c)
+    db.session.commit()
+
+def dealInitalCards(game_users, game_id):
+    deck = Cards.query.filter_by(game_id=game_id).all()
+    for u in game_users:
+        for loc in ['uphand', 'downhand', 'hand']:
+            for i in range(4):
+                card = deck.pop()
+                card.owner = u.id
+                card.location = loc
+                db.session.commit()
 
 def getCards(user_id):
     u = Users.query.get(user_id)
-    print(user_id)
     cards = u.cards
     hand = {
         'hand': [],
@@ -78,7 +102,13 @@ def getCards(user_id):
             'name': c.name,
         })
 
-    return [hand, 'retrieved user cards']
+    result = {
+        'cards': hand,
+        'usingDownCards': u.usingDownCards,
+        'gameWon': len(u.cards) == 0
+    }
+
+    return [result, 'retrieved user cards']
 
 
 def setUsersCardsByType(new_location, newCard_ids, user_id):
@@ -153,16 +183,39 @@ def playValidatedCards(card_ids, user_id):
         c.location = 'pile'
     db.session.commit()
     swapTopOfPile(cards[0], user_id)
+
+    if cards[0].value == 10:
+        clearPile(user_id)
+        return 'cleared pile'
     return 'updated cards'
+
+def clearPile(user_id):
+    pile = getPileCards(user_id)
+    for card in pile:
+        card.location = None
+    db.session.commit()
+
+def turnIncrementByTopCard(user_id):
+    [topCard, _] = getPileTopByUser(user_id)
+    increment = 1
+    if topCard:
+        if topCard.value == 10:
+            increment -= 1
+        elif topCard.value == 8:
+            increment += 1
+    return increment
 
 def changeToNextPlayer(user_id):
     u = Users.query.get(user_id)
     g = Games.query.get(u.game_id)
     game_users = list(g.users)
-    g.currentPlayerIndex = (g.currentPlayerIndex + 1) % len(game_users)
+
+    increment = turnIncrementByTopCard(user_id)
+    g.currentPlayerIndex = (g.currentPlayerIndex + increment) % len(game_users)
     db.session.commit()
 
-    return [game_users[g.currentPlayerIndex], 'increased current player index']
+    print('changed current player index by ' + str(increment))
+    return [game_users[g.currentPlayerIndex], 'changed current player index by ' + str(increment)]
 
 
 def moveCardsToHand(user_id, cards):
@@ -184,21 +237,25 @@ def addPileToUser(user_id):
 def calculateNumToDeal(user, deck):
     userHand = list(filter(lambda c: c.location == 'hand', list(user.cards)))
     print('userHand', userHand)
-    emptySpots = 4 - len(userHand)
+    emptySpots = max(4 - len(userHand), 0)
     return min(emptySpots, len(deck))
 
 def refillUsersHand(user_id):
     u = Users.query.get(user_id)
     g = Games.query.get(u.game_id)
     deck = list(Cards.query.filter(Cards.game_id.like(g.id)).filter(Cards.location.like('deck')))
-    cardsToDeal = deck[-calculateNumToDeal(u, deck)::]
+
+    numToDeal = calculateNumToDeal(u, deck)
+    cardsToDeal = deck[-numToDeal::] if numToDeal != 0 else []
     print('dealing', calculateNumToDeal(u, deck), cardsToDeal)
+    print('deck size: ', len(deck))
     moveCardsToHand(user_id, cardsToDeal)
 
-    if len(list(u.cards)) == 0:
-        upCards = Cards.query.filter(Cards.owner.like(u.id)).filter(Cards.location.like('uphand'))
+    if len(list(filter(lambda c: c.location == 'hand', list(u.cards)))) == 0:
+        upCards = list(Cards.query.filter(Cards.owner.like(u.id)).filter(Cards.location.like('uphand')))
         if upCards:
             moveCardsToHand(user_id, upCards)
+            print('upcards ', upCards)
             return [upCards, 'refilled with upcards']
         else:
             u.usingDownCards = True

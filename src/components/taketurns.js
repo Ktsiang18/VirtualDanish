@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import Hand from './hand'
 import {Route, Link, BrowserRouter as Router, useParams} from 'react-router-dom'
-import Pusher from 'pusher-js'
-import Constants from '../constants'
+
 function TakeTurns(props) {
   let {id, game_id} = useParams()
   const [pileTop, setPileTop] = useState(-1)
@@ -11,7 +10,9 @@ function TakeTurns(props) {
   const [uphand , setUphand] = useState([])
   const [downhand , setDownhand] = useState([])
   const [hand , setHand] = useState([])
+  const [usingDownCards, setUsingDownCards] = useState(false)
   const [chosenCards, setChosen] = useState([])
+  const [chosenDownCard, setChosenDowncard] = useState(0)
 
   const fetchPileTop = () => {
     fetch('/getPileTop/'+id+'/', { method: 'GET' })
@@ -29,40 +30,52 @@ function TakeTurns(props) {
       setCurrentPlayerName(data.player_username)
     })
   }
+  const gameWonState = () => {
+    props.history.push('/finish/' + id + '/' + id)
+  }
 
   const fetchPlayersCards = () => {
     props.getCards(id)
     .then(result => {
-      setUphand(result.uphand)
-      setDownhand(result.downhand)
-      setHand(result.hand)
+      let cards = result.cards
+      if (result.gameWon){
+        gameWonState()
+        return
+      }
+      setUphand(cards.uphand)
+      setDownhand(cards.downhand)
+      setHand(cards.hand.sort((c_a, c_b) => c_a.value - c_b.value))
+      setUsingDownCards(result.usingDownCards)
     })
   }
 
   useEffect(() => {
     fetchPileTop()
     fetchCurrentPlayersTurn()
-  }, [currentPlayerId])
+  }, [pileTop, currentPlayerId])
 
   useEffect(() =>{
     fetchPlayersCards()
-  }, [currentPlayerId])
+  }, [pileTop, currentPlayerId])
 
 
   const onSelect = (card_id) => {
-    const alreadyChosen = chosenCards.findIndex(cid => cid === card_id)
-
-    if(alreadyChosen !== -1){
-      const filtered = chosenCards.filter((c)=>c !== card_id)
-      setChosen(filtered)
-
+    const alreadyChosen = chosenCards.findIndex(cid => cid === card_id) !== -1
+    if(alreadyChosen){
+      setChosen(chosenCards.filter((c)=>c !== card_id))
     } else {
       setChosen([...chosenCards, card_id])
     }
   }
 
+  const onSelectDowncard = (card_id) => {
+    if(usingDownCards && (hand.length == 0)){
+      setChosenDowncard(card_id)
+    } else {
+      alert('Cannot use downcards yet')
+    }
+  }
   const finishPlayersTurn = () => {
-      setChosen([])
       fetch('/updateCurrentPlayer', {
         method: 'POST',
         body: JSON.stringify({
@@ -70,7 +83,12 @@ function TakeTurns(props) {
         })
       })
       .then(res => res.json())
-      .then(data => console.log(data))
+      .then((data) => {
+        setCurrentPlayerId(data.current_player_id)
+        setPileTop(data.top_card)
+        setChosen([])
+        setChosenDowncard(null)
+      })
   }
   const onPickUpPile = () => {
     fetch('/pickUpPile', {
@@ -83,25 +101,25 @@ function TakeTurns(props) {
     })
   }
 
-  const validateCards = async() => {
-    if(chosenCards.length < 1){ alert('you must choose at least one card') }
+  const validateCards = async(cards) => {
+    if(cards.length < 1){ alert('you must choose at least one card') }
 
     const data = await fetch('/validatePlayableCards', {
       method: 'POST',
       body: JSON.stringify({
         user_id: id,
-        card_ids: chosenCards,
+        card_ids: cards,
       })
     })
     return data
   }
 
-  const putDownCards = async() => {
+  const putDownCards = async(cards) => {
     const data = await fetch('/playCards', {
       method: 'POST',
       body: JSON.stringify({
         user_id: id,
-        card_ids: chosenCards,
+        card_ids: cards,
       })
     })
     return data
@@ -118,40 +136,60 @@ function TakeTurns(props) {
   }
 
   const submitCards = () => {
-    validateCards()
+    let cards = []
+    if(chosenDownCard){
+      cards = [chosenDownCard]
+      let card = downhand.filter(c => c.id == chosenDownCard)[0]
+      console.log(card)
+      alert('You flipped a ' +  card.name)
+    } else {
+      cards = chosenCards
+    }
+
+    validateCards(cards)
     .then(res => res.json())
     .then(data => {
       if (!data.valid) {
-        alert(data.message, 'please try again')
-        setChosen([])
+        if(chosenDownCard){
+          putDownCards([chosenDownCard])
+          .then(() => onPickUpPile())
+          .then(() => finishPlayersTurn())
+        } else {
+          alert(data.message, 'please try again')
+          setChosen([])
+        }
       } else {
-        putDownCards()
+        putDownCards(cards)
         .then(() => refillHand())
         .then(() => finishPlayersTurn())
       }
     })
   }
 
-  const pusher = new Pusher(Constants.PUSHER_APP_ID, Constants.PUSHER_OPTIONS);
-  const channel = pusher.subscribe(Constants.PUSHER_CHANNEL);
-  console.log(game_id)
-  channel.bind('change-turn-' + game_id, function(data) {
-    console.log('change turn triggered', data.current_player_id)
-    setCurrentPlayerId(data.current_player_id)
+  props.pusherChannel.bind('change-turn-' + game_id, function(data) {
+    if(data.last_player !== id){
+      setCurrentPlayerId(data.current_player_id)
+      setPileTop(data.top_card)
+      setChosen([])
+    }
   })
 
+  props.pusherChannel.bind('game-won-' + game_id, function(data) {
+    props.history.push('/finish/' + id + '/' + data.winner_id)
+  })
 
   const playing = <span>
                     <button onClick={onPickUpPile}>Pick up pile</button>
                     <button onClick={submitCards}>Play cards</button>
                   </span>
   const waiting = <span>Waiting for {currentPlayerName} to play</span>
+
   return (
     <div>Time to play!
       <div>Top of the pile: {pileTop || '---'}</div>
       <div> {currentPlayerId == id ? 'Your Turn!' : currentPlayerName + '\'s Turn'}</div>
 
-      <Hand label='Downcards' cards={downhand}/>
+      <Hand label='Downcards' cards={downhand} selected={[chosenDownCard]} onSelect={onSelectDowncard}/>
       <Hand label='Upcards' cards={uphand} selected={[]} onSelect={(cid)=> alert('Cannot play uphand card')}/>
       <Hand label='Hand' cards={hand} selected={chosenCards} onSelect={onSelect}/>
 

@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import Hand from './hand'
-import {useParams, Link} from 'react-router-dom'
+import {useParams, Link, withRouter} from 'react-router-dom'
 
 function Swap(props){
     let {id, game_id} = useParams()
@@ -13,9 +13,9 @@ function Swap(props){
     useEffect(() => {
         props.getCards(id)
         .then(result => {
-          setUphand(result.uphand)
-          setDownhand(result.downhand)
-          setHand(result.hand)
+          setUphand(result.cards.uphand)
+          setDownhand(result.cards.downhand)
+          setHand(result.cards.hand)
         })
 
     },[id]);
@@ -49,19 +49,20 @@ function Swap(props){
       }
 
       props.setCards(id, newCards)
+      .then(() => {
+        props.history.push('/play/' + id + '/'+ game_id +'/turn/')
+      })
     }
 
     return (
       <div>
         <h2>Time to swap!</h2>
-        <Hand label='Downcards' cards={downhand}/>
+        <Hand label='Downcards' cards={downhand} selected={[]} onSelect={() => alert('Cannot swap down cards')}/>
         <Hand label='Upcards' cards={uphand} selected={[selectedUp]} onSelect={onSelect(selectedUp, setSelectedUp)}/>
         <Hand label='Hand' cards={hand} selected={[selectedHand]} onSelect={onSelect(selectedHand, setSelectedHand)} />
-        <Link to={'/play/' + id + '/'+ game_id +'/turn/'}>
-          <button onClick={onSubmit}>Submit</button>
-        </Link>
+        <button onClick={onSubmit}>Submit</button>
       </div>
     )
 }
 
-export default Swap
+export default withRouter(Swap)

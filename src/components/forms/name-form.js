@@ -1,47 +1,39 @@
-import React from 'react'
+import React, {useState} from 'react'
 import {withRouter} from 'react-router-dom'
 
-export class NameForm extends React.Component {
-  constructor(props){
-    super(props);
-    this.state = {name: ''};
+function NameForm(props){
+  const [name, setName] = useState('')
 
-    this.handleChange = this.handleChange.bind(this)
-    this.handleSubmit = this.handleSubmit.bind(this)
+  const handleChange = (event) => {
+    setName(event.target.value)
   }
 
-  handleChange(event) {
-    this.setState({name: event.target.value})
-  }
-
-  handleSubmit(event) {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     fetch('/nameForm', {
       method: 'POST',
-      body: JSON.stringify({ name: this.state.name }),
+      body: JSON.stringify({ name: name }),
     })
     .then(res => res.json())
     .then(data =>{
-      alert('Hello ' + this.state.name +'!')
-      console.log(data)
-      this.props.history.push('/start/' + data.user.id + '/joinCreate')
+      alert('Hello ' +  name +'!')
+      props.history.push('/start/' + data.user.id + '/joinCreate')
     })
 
   }
 
-  render(){
     return (
-        <form onSubmit={this.handleSubmit} method="post">
+        <form onSubmit={handleSubmit} method="post">
+          <h1 className="title">Welcome to Danish!</h1>
           <label>
             Please enter your name:
-            <input type="text" value={this.state.name} onChange={this.handleChange} />
-              <input type="submit" value="Submit"/>
+            <input type="text" value={name} onChange={handleChange} />
+            <input type="submit" value="Submit"/>
           </label>
         </form>
 
     );
-  }
 }
 
 export default withRouter(NameForm);

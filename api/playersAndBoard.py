@@ -149,8 +149,6 @@ class Board(object):
         self.dealInitalCards(players, game)
         for p in players:
             p.usingDownCards = False
-            print(p.username, [c.name for c in p.cards])
-        print('initialized!')
 
     def dealInitalCards(self, players, game):
         deck = Cards.query.filter_by(game_id=game.id).all()

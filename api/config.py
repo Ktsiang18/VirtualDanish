@@ -19,3 +19,6 @@ class Constants(object):
 
   def CHANGE_TURN_EVENT(game_id):
       return 'change-turn-' +str(game_id)
+
+  def WIN_EVENT(game_id):
+      return 'game-won-' + str(game_id)

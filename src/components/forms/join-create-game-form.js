@@ -45,6 +45,7 @@ function JoinCreateForm(props){
 
   return (
     <div>
+      <h1 className="title">Welcome to Danish!</h1>
       <form onSubmit={handleSubmit}>
         <label>
           Enter your code to join an existing game:

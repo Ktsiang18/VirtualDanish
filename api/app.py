@@ -18,6 +18,4 @@ pusher_client = pusher.Pusher(
   ssl=True
 )
 
-pusher_client.trigger('my-channel', 'my-event', {'message': 'hello world'})
-
 import models, routes

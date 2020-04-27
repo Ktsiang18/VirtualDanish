@@ -3,15 +3,14 @@ import './css/hand.css'
 
 function Hand(props){
     const cardItems = props.cards.map((c) => {
-      if(props.label == 'Downcards'){
-        return <div>{'---'}</div>
-      }
-      let status = props.selected.find(e => e === c.id) !== undefined ? 'selected' : 'unselected'
-      return <div className={status} key={c.id} onClick={() => {props.onSelect(c.id)}}>{c.name}</div>
+      let status = (props.selected.find(e => e === c.id) !== undefined) ? 'selected' : 'unselected'
+      let label = props.label == 'Downcards' ? '---' : c.name
+
+      return <div key={c.id} className={status} onClick={() => {props.onSelect(c.id)}}>{label}</div>
     })
 
     return (
-      <label>{props.label}
+      <label>{props.cards.length > 0 ? props.label : ''}
       <div className="flex-container">
         {cardItems}
       </div>
