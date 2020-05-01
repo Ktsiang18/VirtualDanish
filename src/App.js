@@ -15,13 +15,13 @@ import GameWon from './components/game-won'
 function App() {
 
   const getCards = async (user_id) => {
-    const res = await fetch('/getUsersCards/' + user_id +'/', { method: 'GET'})
+    const res = await fetch(Constants.PROXY +'/getUsersCards/' + user_id +'/', { method: 'GET'})
     const json = await res.json()
     return json
   }
 
   const setCards = async (user_id, newCards) => {
-    fetch('/setUsersCards', {
+    fetch(Constants.PROXY +'/setUsersCards', {
       method: 'POST',
       body: JSON.stringify({ cards: newCards,
               user_id: user_id })

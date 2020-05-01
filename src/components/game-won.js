@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {Link, useParams, withRouter} from 'react-router-dom'
 import {Modal, Button, Card} from 'react-bootstrap'
+import Constants from '../constants.js'
 import './css/play.css'
 
 function GameWon(props) {
@@ -11,7 +12,7 @@ function GameWon(props) {
   const isWinner = id===winner_id
 
   const getWinner = () => {
-    fetch('/fetchUser/' + winner_id)
+    fetch(Constants.PROXY +'/fetchUser/' + winner_id)
     .then(res => res.json())
     .then(data => {
       setWinnerName(data.user.username)
@@ -25,7 +26,7 @@ function GameWon(props) {
   }
 
   const clearGame = () => {
-    fetch('/clearGame', {
+    fetch(Constants.PROXY +'/clearGame', {
       method: 'POST',
       body: JSON.stringify({
         user_id: id

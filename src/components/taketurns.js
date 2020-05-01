@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react'
+import Constants from '../constants.js'
 import Hand from './hand'
 import {Route, Link, withRouter, useParams} from 'react-router-dom'
 import {Button, Col, Row, Card, CardDeck, Spinner, Alert, Modal} from 'react-bootstrap'
@@ -34,14 +35,14 @@ function TakeTurns(props) {
   }
 
   const fetchPileTop = () => {
-    fetch('/getPileTop/'+id+'/', { method: 'GET' })
+    fetch(Constants.PROXY +'/getPileTop/'+id+'/', { method: 'GET' })
     .then(res => res.json())
     .then(card => {
       if( card.name){
         setPileTop(card)
         if(card.value==10){
 
-          fetch('/clearPile', {
+          fetch(Constants.PROXY +'/clearPile', {
             method: 'POST',
             body: JSON.stringify({
               user_id: id
@@ -56,7 +57,7 @@ function TakeTurns(props) {
   }
 
   const fetchDeckSize = () => {
-    fetch('/getDeckSize/' + id, { method: 'GET' })
+    fetch(Constants.PROXY +'/getDeckSize/' + id, { method: 'GET' })
     .then(res => res.json())
     .then(data => {
       setDeckSize(data.deck_size)
@@ -64,7 +65,7 @@ function TakeTurns(props) {
   }
 
   const fetchCurrentPlayersTurn = () => {
-    fetch('/getCurrentPlayer/' + id + '/', {method: 'GET'})
+    fetch(Constants.PROXY +'/getCurrentPlayer/' + id + '/', {method: 'GET'})
     .then(res => res.json())
     .then(data => {
       setCurrentPlayerId(data.player_id)
@@ -117,7 +118,7 @@ function TakeTurns(props) {
     }
   }
   const finishPlayersTurn = () => {
-      fetch('/updateCurrentPlayer', {
+      fetch(Constants.PROXY +'/updateCurrentPlayer', {
         method: 'POST',
         body: JSON.stringify({
           user_id: id,
@@ -132,7 +133,7 @@ function TakeTurns(props) {
       })
   }
   const onPickUpPile = () => {
-    fetch('/pickUpPile', {
+    fetch(Constants.PROXY +'/pickUpPile', {
       method: 'POST',
       body: JSON.stringify({
         user_id: id,
@@ -145,7 +146,7 @@ function TakeTurns(props) {
   const validateCards = async(cards) => {
     if(cards.length < 1){ errorAlert('You haven\'t chosen any cards to play.') }
 
-    const data = await fetch('/validatePlayableCards', {
+    const data = await fetch(Constants.PROXY +'/validatePlayableCards', {
       method: 'POST',
       body: JSON.stringify({
         user_id: id,
@@ -156,7 +157,7 @@ function TakeTurns(props) {
   }
 
   const putDownCards = async(cards) => {
-    const data = await fetch('/playCards', {
+    const data = await fetch(Constants.PROXY +'/playCards', {
       method: 'POST',
       body: JSON.stringify({
         user_id: id,
@@ -167,7 +168,7 @@ function TakeTurns(props) {
   }
 
   const refillHand = async() => {
-    const data = await fetch('/refillHand', {
+    const data = await fetch(Constants.PROXY +'/refillHand', {
       method: 'POST',
       body: JSON.stringify({
         user_id: id
@@ -193,7 +194,7 @@ function TakeTurns(props) {
       if (!data.valid) {
         if(chosenDownCard){
           putDownCards([chosenDownCard])
-          .then(() => fetch('/pickUpPile', {
+          .then(() => fetch(Constants.PROXY +'/pickUpPile', {
                         method: 'POST',
                         body: JSON.stringify({
                           user_id: id,

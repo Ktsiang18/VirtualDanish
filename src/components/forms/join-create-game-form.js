@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import {withRouter, useParams} from 'react-router-dom'
 import {Button, Alert, Form, InputGroup, Col, Row, Accordion, useAccordionToggle } from 'react-bootstrap';
+import Constants from '../../constants.js'
 
 import '../css/start.css'
 
@@ -14,7 +15,7 @@ function JoinCreateForm(props){
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    fetch('/joinGame', {
+    fetch(Constants.PROXY + '/joinGame', {
         method:'POST',
         body:JSON.stringify({
           code: code,
@@ -33,7 +34,7 @@ function JoinCreateForm(props){
   }
 
   const newGame = (event) => {
-    fetch('/createGame', {
+    fetch(Constants.PROXY + '/createGame', {
       method: 'POST',
       body: JSON.stringify({
         user_id: id
@@ -50,7 +51,7 @@ function JoinCreateForm(props){
   }
 
   useEffect(() => {
-    fetch('/fetchUser/' + id)
+    fetch(Constants.PROXY + '/fetchUser/' + id)
     .then(res => res.json())
     .then(data => {
       setName(data.user.username)

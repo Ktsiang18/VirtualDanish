@@ -1,4 +1,5 @@
 import React from 'react'
+import Constants from '../constants.js'
 import Swap from './swap'
 import TakeTurns from './taketurns'
 import {Route, Link, BrowserRouter as Router} from 'react-router-dom'
@@ -11,13 +12,13 @@ export class Play extends React.Component {
   }
 
   async getCards(user_id){
-    const res = await fetch('/getUsersCards/' + user_id +'/', { method: 'GET'})
+    const res = await fetch(Constants.PROXY +'/getUsersCards/' + user_id +'/', { method: 'GET'})
     const json = await res.json()
     return json
   }
 
   async setCards(user_id, newCards){
-    fetch('/setUsersCards', {
+    fetch(Constants.PROXY +'/setUsersCards', {
       method: 'POST',
       body: JSON.stringify({ cards: newCards,
               user_id: user_id })

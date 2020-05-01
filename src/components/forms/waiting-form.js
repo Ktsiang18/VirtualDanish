@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {useParams, withRouter} from 'react-router-dom'
 import {Card, ListGroup, CardDeck, Spinner, Button, Alert} from 'react-bootstrap'
+import Constants from '../../constants.js'
 import '../css/start.css'
 
 function WaitingForm(props){
@@ -14,8 +15,8 @@ function WaitingForm(props){
   const [waiting, setWaiting] = useState(true)
 
   let path = '/play/'+id+'/'+game_id+'/swap/'
-  const fetchUser = async() => await fetch('/fetchUser/'+id)
-  const fetchGame = async(user) => await fetch('/fetchGame/'+ user.game_id)
+  const fetchUser = async() => await fetch(Constants.PROXY +'/fetchUser/'+id)
+  const fetchGame = async(user) => await fetch(Constants.PROXY +'/fetchGame/'+ user.game_id)
 
   useEffect(()=>{
     fetchUser()
@@ -36,7 +37,7 @@ function WaitingForm(props){
   }, [id])
 
   const initializeGame = () => {
-    fetch('/initGame', {
+    fetch(Constants.PROXY +'/initGame', {
       method:'POST',
       body:JSON.stringify({
         game_id: game_id
