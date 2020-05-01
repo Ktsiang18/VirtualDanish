@@ -6,7 +6,7 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert'
 import Form from 'react-bootstrap/Form'
 import InputGroup from 'react-bootstrap/InputGroup'
-import Constants from '../../../constants.js'
+import Constants from '../../constants.js'
 function NameForm(props){
   const [name, setName] = useState('')
 
