@@ -87,7 +87,7 @@ def dealInitalCards(game_users, game_id):
 
 def getCards(user_id):
     u = Users.query.get(user_id)
-    cards = u.cards
+    cards = list(u.cards)
     hand = {
         'hand': [],
         'uphand': [],
@@ -105,7 +105,8 @@ def getCards(user_id):
     result = {
         'cards': hand,
         'usingDownCards': u.usingDownCards,
-        'gameWon': len(u.cards) == 0
+        'gameWon': len(cards) == 0,
+        'gameId': u.game_id
     }
 
     return [result, 'retrieved user cards']
@@ -133,6 +134,12 @@ def getPileTopByUser(user_id):
         return [topCard, 'retrieved top of the pile']
     else:
         return [topCard, 'top of the pile is empty']
+
+def getDeckLength(user_id):
+    u = Users.query.get(user_id)
+    g = Games.query.get(u.game_id)
+    deck = list(Cards.query.filter(Cards.game_id.like(g.id)).filter(Cards.location.like('deck')))
+    return len(deck)
 
 def swapTopOfPile(newTopCard, user_id):
     [topCard, _] = getPileTopByUser(user_id)
@@ -173,7 +180,7 @@ def validateCards(card_ids, user_id):
         return [True, 'card is bigger than card below']
 
     else:
-        return [False, ('value '+str(value)+' cannot be played on a '+str(topCard.value))]
+        return [False, (c.name[1::] +' cannot be played after '+topCard.name[1::])]
 
 def playValidatedCards(card_ids, user_id):
     cards = [Cards.query.get(cid) for cid in card_ids]
@@ -183,10 +190,6 @@ def playValidatedCards(card_ids, user_id):
         c.location = 'pile'
     db.session.commit()
     swapTopOfPile(cards[0], user_id)
-
-    if cards[0].value == 10:
-        clearPile(user_id)
-        return 'cleared pile'
     return 'updated cards'
 
 def clearPile(user_id):
@@ -203,6 +206,7 @@ def turnIncrementByTopCard(user_id):
             increment -= 1
         elif topCard.value == 8:
             increment += 1
+
     return increment
 
 def changeToNextPlayer(user_id):
@@ -263,3 +267,16 @@ def refillUsersHand(user_id):
             return [[], 'player using downcards']
 
     return [cardsToDeal, 'refilled from deck']
+
+def clearGameFromDB(user_id):
+    u = Users.query.get(usere_id)
+    g = Games.query.get(u.game_id)
+
+    for c in list(g.cards):
+        db.session.delete(c)
+
+    for u in list(g.users):
+        db.session.delete(u)
+
+    db.session.delete(g)
+    db.sesssion.commit()

@@ -1,6 +1,90 @@
-.title{
-  text-align: center;
+@import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Slab:ital,wght@1,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sacramento&display=swap');
+
+
+:root {
+  --purple: #AE74E1;
+  --blue: #0275d8;
+  --pink : #FB02FF;
+  --red: #e174a7;
+  --green: #5CB85C;
+}
+
+
+.danish {
+  font-family: 'Monoton', cursive;
+  font-size: 75px;
+  color: orange;
+}
+
+.lets {
+  font-family: 'Josefin Slab', serif;
+  font-size: 75px;
+  color: var(--pink);
+  font-weight: bold;
+}
+
+.play {
+  font-family: 'Sacramento', cursive;
+  font-size: 75px;
+  margin-bottom: -10px;
+  color: var(--green);
 }
 .prompt{
   text-align: center;
+  font-family: 'Josefin Slab', serif;
+}
+
+.question {
+  font-family: 'Josefin Slab', serif;
+  font-size: 70px;
+  color: orange;
+  font-weight: bold;
+}
+
+.code-input {
+  max-width: 60%;
+}
+.ready-set {
+  font-family: 'Monoton', cursive;
+  font-size: 60px;
+}
+
+.list-item {
+  font-size: 16px;
+  font-weight: bold;
+}
+.smaller-p {
+  font-size: 16px;
+}
+
+.smaller-h {
+  font-size:
+}
+
+.float-top {
+  top: 20px;
+  align-items: center;
+  position:absolute;
+}
+
+.align-left {
+  justify-content: center;
+}
+
+.green {
+  color: var(--green)
+}
+
+.blue {
+  color: var(--blue)
+}
+
+.pink {
+  color: var(--pink)
+}
+
+.orange {
+  color: orange;
 }

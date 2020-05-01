@@ -1,5 +1,5 @@
 import React from 'react';
-import {Route, Link, Switch, BrowserRouter as Router } from 'react-router-dom'
+import {Route, Switch, BrowserRouter as Router } from 'react-router-dom'
 import logo from './logo.svg';
 import './App.css';
 import Pusher from 'pusher-js'
@@ -37,7 +37,6 @@ function App() {
     <div className="App">
       <header className="App-header">
       <Router>
-        <div>
         <Switch>
           <Route path = '/start/:id/joinCreate'>
             <JoinCreateForm/>
@@ -58,7 +57,6 @@ function App() {
             <NameForm />
           </Route>
           </Switch>
-        </div>
       </Router>
       </header>
     </div>

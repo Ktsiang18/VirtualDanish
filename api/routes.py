@@ -8,6 +8,7 @@ from config import Constants
 def hello():
     return render_template('./pusherTest.html')
 
+#--------- USER INIT -------------
 @app.route("/nameForm", methods=['POST'])
 def nameForm():
     data = json.loads(request.data)
@@ -20,11 +21,32 @@ def nameForm():
             'message': message
         }
     }
-#----GAME INIT ----
+
+
+@app.route("/joinGame", methods=['POST'])
+def joinGame():
+    data = json.loads(request.data)
+    [game, message] = addUserToGame(data['code'], data['user_id'])
+
+    if not game:
+        return {'game_id': None, 'message': message}
+
+    game_users = [{'id': u.id, 'username': u.username, 'isAdmin': u.isAdmin } for u in game.users]
+    pusher_client.trigger(Constants.PUSHER_CHANNEL, Constants.JOIN_EVENT(game.id), \
+                {'message': message, 'game_users': game_users})
+
+    return {
+            'game_id': game.id,
+            'game_code': game.code,
+            'game_users': game_users,
+            'message': message,
+        }
+
+#--------- GAME INIT -------------
 @app.route("/fetchGame/<game_id>", methods=['GET'])
 def fetchGame(game_id):
     g = getGame(game_id)
-    users = list({'id': u.id, 'username': u.username} for u in g.users)
+    users = list({'id': u.id, 'username': u.username, 'isAdmin': u.isAdmin} for u in g.users)
     return {
         'game': {
             'id': g.id,
@@ -44,25 +66,6 @@ def fetchUser(user_id):
             'game_id': u.game_id
         }
     }
-
-@app.route("/joinGame", methods=['POST'])
-def joinGame():
-    data = json.loads(request.data)
-    [game, message] = addUserToGame(data['code'], data['user_id'])
-
-    if not game:
-        return {'game_id': None, 'message': message}
-
-    game_users = [{'id': u.id, 'username': u.username } for u in game.users]
-    pusher_client.trigger(Constants.PUSHER_CHANNEL, Constants.JOIN_EVENT(game.id), \
-                {'message': message, 'game_users': game_users})
-
-    return {
-            'game_id': game.id,
-            'game_code': game.code,
-            'game_users': game_users,
-            'message': message,
-        }
 
 
 @app.route("/createGame", methods=['POST'])
@@ -92,9 +95,8 @@ def initGame():
 def getUsersCards(user_id):
     [result, message] = getCards(user_id)
 
-    if result.gameWon:
-        pusher_client.trigger(Constants.PUSHER_CHANNEL, Constants.WIN_EVENT(currentPlayer.game_id), {'winner_id': user_id})
-
+    if result['gameWon']:
+        pusher_client.trigger(Constants.PUSHER_CHANNEL, Constants.WIN_EVENT(result['gameId']), {'winner_id': user_id})
     return result
 
 @app.route("/setUsersCards", methods=['POST'])
@@ -122,6 +124,18 @@ def getPileTop(user_id):
         serialized = {'name': None}
     serialized['message'] = message
     return serialized
+
+@app.route("/clearPile", methods=['POST'])
+def clearPileCards():
+    data=json.loads(request.data)
+    clearPile(data['user_id'])
+
+@app.route("/getDeckSize/<user_id>", methods=['GET'])
+def getDeckSize(user_id):
+    size = getDeckLength(user_id)
+    return {
+        'deck_size': size
+    }
 
 @app.route("/getCurrentPlayer/<user_id>/", methods=['GET'])
 def getCurrentPlayer(user_id):
@@ -169,8 +183,18 @@ def updateCurrentPlayer():
     data = json.loads(request.data)
     [currentPlayer, message] = changeToNextPlayer(data['user_id'])
     [topCard, _] =  getPileTopByUser(data['user_id'])
+
+    serialized= {'id':None}
+    if topCard:
+        serialized = {
+            'id': topCard.id,
+            'suit': topCard.suit,
+            'value': topCard.value,
+            'name':topCard.name,
+        }
+
     result = {
-        'top_card': topCard.name if topCard else None,
+        'top_card': serialized,
         'current_player_id': currentPlayer.id,
         'current_player_username': currentPlayer.username,
         'message': message,
@@ -178,3 +202,9 @@ def updateCurrentPlayer():
     }
     pusher_client.trigger(Constants.PUSHER_CHANNEL, Constants.CHANGE_TURN_EVENT(currentPlayer.game_id), result)
     return result
+
+#----- end game -----
+@app.route("/clearGame", methods=['POST'])
+def clearGame():
+    data = json.loads(request.data)
+    clearGameFromDB(user_id)

@@ -1,0 +1,112 @@
+
+:root {
+  --purple: #AE74E1;
+  --blue: #0275d8;
+  --pink : #FB02FF;
+  --red: #e174a7;
+  --green: #5CB85C;
+  --faded-green: #d4edda;
+  --faded-red: #f8d7da;
+  --faded-dark: #d6d8d9;
+}
+
+.left-col {
+  margin-top:40px;
+}
+
+.right-col {
+  margin: auto;
+}
+
+.hand-card-deck {
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.hand-label {
+  padding-top: 10px;
+  font-family: 'Josefin Slab', serif;
+}
+
+.unselected {
+  background-color: white;
+}
+.selected {
+  background-color: red;
+}
+
+.card-value {
+  text-align: center;
+  min-width: 5rem;
+}
+
+.deck-counter {
+  font-family: 'Josefin Slab', serif;
+  font-weight: bolder;
+}
+
+.card-header {
+  padding-top: 0px;
+  font-size: 20px;
+}
+
+.footer {
+  text-align: right;
+  font-size: 15px;
+  padding: 5px;
+}
+
+.game-over {
+  color:white
+}
+
+.symbol-red {
+  color: transparent;
+  text-shadow: 0 0 0 red;
+  padding-left: 0px;
+}
+
+.symbol-white {
+  color: transparent;
+  text-shadow: 0 0 0 white;
+}
+
+.smaller-p {
+  font-size: 16px;
+}
+
+.alert-row {
+  top: 10px;
+  justify-content: center;
+}
+
+.big-button {
+  padding-top: 20px;
+  text-align: right;
+}
+.big-button > button{
+  padding-left: 30px;
+  padding-right: 30px;
+  font-size: 18px;
+}
+
+.pickup-button {
+  margin-right: 15px;
+}
+
+.green {
+  color: var(--green)
+}
+
+.orange {
+  color: var(--orange)
+}
+
+.print {
+  color: var(--pink)
+}
+
+.grey {
+  color: gray
+}

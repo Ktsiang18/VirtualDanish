@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react'
 import Hand from './hand'
-import {useParams, Link, withRouter} from 'react-router-dom'
-
+import {useParams, withRouter} from 'react-router-dom'
+import {Button, Modal, Col, Row, Card, Alert} from 'react-bootstrap'
+import './css/play.css'
 function Swap(props){
     let {id, game_id} = useParams()
     const [uphand , setUphand] = useState([])
@@ -9,6 +10,7 @@ function Swap(props){
     const [hand , setHand] = useState([])
     const [selectedHand, setSelectedHand] = useState(-1)
     const [selectedUp, setSelectedUp]= useState(-1)
+    const [showErrorAlert, setShowErrorAlert] = useState(false)
 
     useEffect(() => {
         props.getCards(id)
@@ -54,13 +56,44 @@ function Swap(props){
       })
     }
 
+    const errorAlertItem = <Row><Alert variant="danger" show={showErrorAlert} onClose={()=>setShowErrorAlert(false)} dismissible>
+                                  <Alert.Heading>Oops!</Alert.Heading>
+                                  <p className="smaller-p">You can't use your down cards <strong>yet</strong></p>
+                            </Alert>
+                          </Row>
+
     return (
-      <div>
-        <h2>Time to swap!</h2>
-        <Hand label='Downcards' cards={downhand} selected={[]} onSelect={() => alert('Cannot swap down cards')}/>
-        <Hand label='Upcards' cards={uphand} selected={[selectedUp]} onSelect={onSelect(selectedUp, setSelectedUp)}/>
-        <Hand label='Hand' cards={hand} selected={[selectedHand]} onSelect={onSelect(selectedHand, setSelectedHand)} />
-        <button onClick={onSubmit}>Submit</button>
+    <div>
+    <Row className="alert-row">
+      {errorAlertItem}
+    </Row>
+    <Row>
+        <Col sm={5} className="left-col">
+          <Card bg="dark">
+            <Card.Body>
+              <Card.Title><h2> Time to Swap!</h2></Card.Title>
+              <p className="smaller-p">
+              Here's your one chance to swap any of your <span className="orange"> upcards </span>
+              (used at the end of the game)
+               with cards in your hand.
+              </p>
+            </Card.Body>
+            <Card.Footer className='footer'>
+               <span className="grey"> HINT: you probably want some good cards in your uphand! </span>
+            </Card.Footer>
+          </Card>
+          <div className="big-button">
+            <Button variant="outline-success" onClick={onSubmit}>Finished Swapping</Button>
+          </div>
+        </Col>
+          <Col md={6}>
+            <Hand label='Hand' cards={hand} selected={[selectedHand]} onSelect={onSelect(selectedHand, setSelectedHand)} />
+            <Hand label='Upcards' cards={uphand} selected={[selectedUp]} onSelect={onSelect(selectedUp, setSelectedUp)}/>
+            <Hand label='Downcards' cards={downhand} selected={[]} onSelect={() => setShowErrorAlert(true)}/>
+
+
+          </Col>
+      </Row>
       </div>
     )
 }
