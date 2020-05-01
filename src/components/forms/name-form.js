@@ -17,7 +17,7 @@ function NameForm(props){
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    fetch(Constants.proxy + '/nameForm', {
+    fetch(Constants.PROXY + '/nameForm', {
       method: 'POST',
       body: JSON.stringify({ name: name }),
     })
