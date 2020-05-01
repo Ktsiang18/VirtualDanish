@@ -36,5 +36,6 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000"
+  "proxy": "https://virtual-danish-api.herokuapp.com/",
+  "proxy-local": "http://localhost:5000"
 }
